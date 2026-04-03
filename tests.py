@@ -124,17 +124,6 @@ class TestBooksCollector:
         collector.add_book_in_favorites(book_name)
         assert book_name not in collector.favorites
 
-    # тест: добавление и удаление книги из избранного
-    # проверяет последовательность действий: добавление в избранное, удаление из избранного
-    def test_add_delete_book_in_favorites(self):
-        collector = BooksCollector()
-        book_name = 'Гарри Поттер'
-        collector.add_new_book(book_name)
-        collector.add_book_in_favorites(book_name)
-        assert book_name in collector.favorites
-        collector.delete_book_from_favorites(book_name)
-        assert book_name not in collector.favorites
-
     # тест: получение списка избранного
     # проверяет корректность работы метода get_list_of_favorites_books
     def test_get_list_of_favorites_books(self):
@@ -145,3 +134,66 @@ class TestBooksCollector:
             collector.add_book_in_favorites(book)
         result = collector.get_list_of_favorites_books()
         assert result == favorite_books
+        
+    # Тест проверяет корректность работы метода get_books_genre() класса BooksCollector.
+    # Убеждается, что метод возвращает словарь с книгами и их жанрами в соответствии с установленными значениями.
+    def test_get_books_genre(self):
+        collector = BooksCollector()
+        collector.add_new_book('Дюна')
+        collector.set_book_genre('Дюна', 'Фантастика')
+        collector.add_new_book('Убийство в Восточном экспрессе')
+        collector.set_book_genre('Убийство в Восточном экспрессе', 'Детективы')
+
+        result = collector.get_books_genre()
+        expected = {'Дюна': 'Фантастика', 'Убийство в Восточном экспрессе': 'Детективы'}
+        assert result == expected
+
+    # Тест проверяет корректность добавления книги в список избранного (favorites)
+    # через метод add_book_in_favorites() для книги, которая уже есть в коллекции.
+    def test_add_book_in_favorites_existing_book(self):
+        collector = BooksCollector()
+        book_name = 'Гарри Поттер'
+        collector.add_new_book(book_name)
+        collector.add_book_in_favorites(book_name)
+        assert book_name in collector.favorites
+    
+    # Тест проверяет корректность добавления книги в список избранного (favorites)
+    # через метод add_book_in_favorites() после предварительного добавления книги в коллекцию.
+    def test_add_book_to_favorites(self):
+        collector = BooksCollector()
+        book_name = 'Гарри Поттер'
+        collector.add_new_book(book_name)
+        collector.add_book_in_favorites(book_name)
+        assert book_name in collector.favorites
+
+
+    # Тест проверяет корректность удаления книги из списка избранного (favorites)
+    # через метод delete_book_from_favorites() после добавления книги в избранное.
+    def test_delete_book_from_favorites(self):
+        collector = BooksCollector()
+        book_name = 'Гарри Поттер'
+        collector.add_new_book(book_name)
+        collector.add_book_in_favorites(book_name)
+        collector.delete_book_from_favorites(book_name)
+        assert book_name not in collector.favorites   
+
+    # Негативная проверка: книги с наименованием 0 или длиннее 40 символов — не добавляются
+    @pytest.mark.parametrize('invalid_book_name',
+        ['',
+         'A' * 50
+        ])
+    def test_add_new_book_invalid_name(self, invalid_book_name):
+        collector = BooksCollector()
+        collector.add_new_book(invalid_book_name)
+        assert invalid_book_name not in collector.get_books_genre()
+        
+    # Позитивная проверка: книги с наименованием от 1 до 40 символов — успешно добавляются
+    @pytest.mark.parametrize('valid_book_name', [
+        'A',  # минимальная длина — 1 символ
+        'Война и мир',  # обычное название
+        'A' * 40  # максимальная длина — ровно 40 символов
+        ])
+    def test_add_new_book_valid_name(self, valid_book_name):
+        collector = BooksCollector()
+        collector.add_new_book(valid_book_name)
+        assert valid_book_name in collector.get_books_genre()
